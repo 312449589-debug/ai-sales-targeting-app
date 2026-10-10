@@ -1,0 +1,16 @@
+[Unit]
+Description=AI 销售定向营销 App（Flask 后端）
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+# 部署时按实际路径修改（部署提示词会覆盖）
+WorkingDirectory=/opt/sales-app
+EnvironmentFile=/opt/sales-app/.env
+ExecStart=/opt/sales-app/venv/bin/python /opt/sales-app/app.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
