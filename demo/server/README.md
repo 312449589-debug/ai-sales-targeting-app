@@ -1,7 +1,7 @@
 # AI 销售定向营销 App · 后端（demo/server）
 
 Flask 后端：3 个 AI 代理接口（一句话整理画像卡 / 五层分群＋策略 / 按画像生成三版话术）＋
-画像/话术/触达记录 CRUD，SQLite 单文件数据库，同时托管前端 `static/index.html`。
+画像/话术/触达记录 CRUD，SQLite 单文件数据库，同时托管前端 `static/`（`index.html` 按屏幕宽度跳转 `desktop.html` / `mobile.html`）。
 
 AI 走千问百炼 OpenAI 兼容模式（`https://dashscope.aliyuncs.com/compatible-mode/v1`，
 model `qwen-plus`）。**Key 只从环境变量 `BAILIAN_API_KEY` 读，不写进代码。**
@@ -44,7 +44,9 @@ curl -X POST http://127.0.0.1:5000/api/ai/organize \
 ## 目录说明
 
 - `app.py`：全部后端逻辑（DB 建表、API、百炼代理、风险词、静态托管）
-- `static/index.html`：前端单文件（零外部依赖）
+- `static/desktop.html`：桌面端前端（零外部依赖）
+- `static/mobile.html`：移动端前端（零外部依赖）
+- `static/index.html`：按屏幕宽度自动跳转的小页
 - `requirements.txt`：flask / flask-cors / requests
 - `.env.example`：环境变量模板（复制为 `.env` 后填 Key）
 - `sales-app.service`：systemd unit（服务器部署用，WorkingDirectory 按实际改）

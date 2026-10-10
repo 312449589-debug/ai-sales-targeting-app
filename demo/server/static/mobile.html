@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 销售助手 · 移动端</title>
+<style>
+  :root{
+    --navy:#1a2742; --navy-2:#27395f; --orange:#ef6a1a; --orange-d:#d95c12; --orange-dd:#c24f0e;
+    --bg:#f3f5f9; --card:#fff; --ink:#1c2b4a; --sub:#5b6b8c; --hint:#98a2b3;
+    --line:#e6eaf2; --input-bd:#d9dee8; --chip:#eef1f7;
+    --blue-bg:#e3f0fd; --blue-tx:#1565c0; --green-bg:#e6f4ea; --green-tx:#1e7e34;
+    --amber-bg:#fff4e0; --amber-tx:#b26a00; --gray-bg:#f0f0f0; --gray-tx:#666;
+    --red-bg:#fdecea; --red-tx:#c62828;
+  }
+  *{ box-sizing:border-box; }
+  body{ font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+        margin:0; background:var(--bg); color:var(--ink); -webkit-font-smoothing:antialiased; }
+  button{ font-family:inherit; }
+  h3{ margin:0 0 10px; font-size:16px; color:var(--ink); }
+
+  /* ---------- 桌面端侧边栏 ---------- */
+  
+  
+  .logo .star{ color:var(--orange); }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+  /* ---------- 页面主体 ---------- */
+  #page{ margin-left:232px; min-height:100vh; }
+  #page_head{ display:flex; justify-content:space-between; align-items:flex-start;
+              padding:22px 28px 0; }
+  #page_head h2{ margin:0; font-size:21px; }
+  #page_head p{ margin:6px 0 0; font-size:13px; color:var(--sub); }
+  .pg-right{ font-size:12px; color:var(--hint); padding-top:6px; white-space:nowrap; }
+  main{ max-width:1120px; padding:18px 28px 60px; }
+  .tabpage{ display:none; } .tabpage.active{ display:block; }
+
+  .card{ background:var(--card); border:1px solid var(--line); border-radius:12px;
+         padding:20px; margin-bottom:16px; }
+  .card-head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; }
+  .card-head h3{ margin:0; }
+  .head-note{ font-size:12px; color:var(--hint); }
+  .desc{ font-size:13px; color:var(--sub); margin:0 0 12px; line-height:1.7; }
+  .hint{ font-size:12px; color:var(--hint); line-height:1.7; margin:8px 0 0; }
+  .flabel{ display:block; font-size:13px; color:var(--sub); margin:14px 0 6px; font-weight:600; }
+  .flabel:first-child{ margin-top:0; }
+  hr{ border:0; border-top:1px solid var(--line); margin:18px 0; }
+
+  input[type=text], textarea, select{ width:100%; padding:10px 12px; font-size:14px;
+      border:1px solid var(--input-bd); border-radius:8px; font-family:inherit;
+      color:var(--ink); background:#fff; }
+  textarea{ min-height:96px; resize:vertical; background:#f7f9fc; border-color:#e2e7f0; line-height:1.7; }
+  input:focus, textarea:focus, select:focus{ outline:2px solid rgba(239,106,26,.25); border-color:var(--orange); }
+  select.err{ border-color:#e5484d; }
+  .ferr{ color:#e5484d; font-size:12px; margin-top:6px; }
+
+  .btn{ border:0; border-radius:10px; padding:12px 18px; font-size:15px; font-weight:600;
+        cursor:pointer; transition:background .15s; }
+  .btn.primary{ background:var(--orange); color:#fff; }
+  .btn.primary:hover{ background:var(--orange-d); }
+  .btn.primary:active{ background:var(--orange-dd); }
+  .btn.primary:disabled{ background:#f3b98c; cursor:default; }
+  .btn.outline{ background:#fff; color:var(--ink); border:1px solid var(--input-bd); }
+  .btn.outline:hover{ border-color:var(--orange); color:var(--orange); }
+  .btn.block{ width:100%; margin-top:12px; }
+  .btn .spin{ display:inline-block; width:15px; height:15px; border:2px solid rgba(255,255,255,.4);
+              border-top-color:#fff; border-radius:50%; margin-right:8px;
+              vertical-align:-2px; animation:rot .8s linear infinite; }
+  @keyframes rot{ to{ transform:rotate(360deg); } }
+
+  .chips{ display:flex; flex-wrap:wrap; gap:8px; margin:4px 0 12px; }
+  .chips button{ border:0; background:var(--chip); color:#3c4a6b; border-radius:14px;
+                 padding:6px 15px; font-size:13px; cursor:pointer; }
+  .chips button.on{ background:var(--navy); color:#fff; font-weight:600; }
+
+  .seg{ display:inline-flex; background:var(--chip); border-radius:10px; padding:4px; gap:4px; }
+  .seg button{ border:0; background:none; padding:8px 22px; font-size:14px; color:var(--sub);
+               border-radius:8px; cursor:pointer; }
+  .seg button.on{ background:#fff; color:var(--ink); font-weight:700;
+                  box-shadow:0 1px 3px rgba(0,0,0,.12); }
+
+  .badge{ display:inline-block; padding:3px 12px; border-radius:20px; font-size:12px; font-weight:600; }
+  .b-新用户{ background:var(--blue-bg); color:var(--blue-tx); }
+  .b-活跃{ background:var(--green-bg); color:var(--green-tx); }
+  .b-高价值{ background:var(--amber-bg); color:var(--amber-tx); }
+  .b-沉睡{ background:var(--gray-bg); color:var(--gray-tx); }
+  .b-流失{ background:var(--red-bg); color:var(--red-tx); }
+  .big-stage{ display:inline-block; background:var(--amber-bg); color:var(--amber-tx);
+              font-size:26px; font-weight:700; border-radius:12px; padding:10px 22px; margin:10px 0; }
+  .big-stage.st-新用户{ background:var(--blue-bg); color:var(--blue-tx); }
+  .big-stage.st-活跃{ background:var(--green-bg); color:var(--green-tx); }
+  .big-stage.st-沉睡{ background:var(--gray-bg); color:var(--gray-tx); }
+  .big-stage.st-流失{ background:var(--red-bg); color:var(--red-tx); }
+
+  .cols-2{ display:grid; grid-template-columns:1fr 1.25fr; gap:16px; align-items:start; }
+  .cols-2n{ display:grid; grid-template-columns:340px 1fr; gap:16px; align-items:start; }
+
+  /* 画像卡 */
+  .psec{ border-top:1px solid var(--line); padding:12px 0; }
+  .psec:first-of-type{ border-top:0; }
+  .psec-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .psec-head span{ font-size:13px; color:var(--sub); font-weight:600; }
+  .editbtn{ border:0; background:none; color:var(--hint); cursor:pointer; font-size:15px;
+            padding:4px 8px; border-radius:8px; }
+  .editbtn:hover{ background:var(--blue-bg); color:var(--blue-tx); }
+  .psec-body{ font-size:14px; line-height:1.8; }
+  .psec-body .kv{ margin-right:18px; }
+  .psec-body .kv b{ font-weight:600; }
+  .pchip{ display:inline-block; background:var(--chip); color:#3c4a6b; border-radius:12px;
+          padding:3px 12px; font-size:13px; margin:2px 6px 2px 0; }
+  .quote{ font-size:14px; }
+  .card-foot{ display:flex; justify-content:space-between; align-items:center; gap:12px;
+              margin-top:14px; }
+  .card-foot .hint{ margin:0; }
+  .edit-row{ display:flex; gap:8px; margin-top:8px; }
+  .edit-row .btn{ padding:8px 16px; font-size:13px; }
+  .seed-box{ background:#eef4fe; border-radius:8px; padding:12px; font-size:13px;
+             color:#3c4a6b; line-height:1.8; margin-top:8px; }
+  .seed-title{ font-size:13px; color:var(--sub); margin-top:16px; }
+
+  /* 分层 */
+  .search{ position:relative; margin-bottom:10px; }
+  .search input{ padding-left:34px; background:#f7f9fc; }
+  .search::before{ content:"🔍"; position:absolute; left:11px; top:10px; font-size:14px; opacity:.55; }
+  .crow{ display:block; width:100%; text-align:left; background:#fff; border:1px solid var(--line);
+         border-radius:10px; padding:12px 14px; margin-bottom:8px; cursor:pointer; }
+  .crow:hover{ border-color:#b9c6e2; }
+  .crow.on{ background:#eef4fe; border-color:#b9c6e2; }
+  .crow .r1{ display:flex; justify-content:space-between; align-items:center; }
+  .crow .r1 b{ font-size:14px; }
+  .crow .csub{ font-size:12px; color:var(--hint); margin-top:6px;
+               white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .strat-title{ color:var(--orange); font-size:16px; margin:0 0 10px; }
+  .strat-text{ font-size:14px; line-height:1.8; margin:0 0 12px; }
+  .warnbox{ background:#fff8e8; border-radius:8px; padding:12px 14px; font-size:13px;
+            color:var(--amber-tx); line-height:1.7; }
+  .blabel{ font-size:13px; color:var(--sub); font-weight:600; margin:0 0 6px; }
+  .apply-row{ display:flex; justify-content:space-between; align-items:center; gap:14px;
+              margin:4px 0 16px; }
+  .apply-row .hint{ margin:0; flex:1; }
+
+  /* 话术 */
+  .ctrl-card .ctrl-row{ display:flex; align-items:flex-end; gap:28px; }
+  .ctrl-card .grow{ flex:1; }
+  .btn.big{ padding:13px 42px; white-space:nowrap; }
+  .ver-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .ver{ display:flex; flex-direction:column; }
+  .ver.sel{ border:1.5px solid var(--orange); }
+  .ver-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .ver-head h3{ margin:0; font-size:17px; }
+  .vpill{ font-size:11px; color:var(--sub); background:var(--chip); border-radius:12px; padding:4px 12px; }
+  .vpill.sel{ background:var(--navy); color:#fff; font-weight:600; }
+  .script-text{ white-space:pre-wrap; font-size:14px; line-height:1.8; background:#fafbfc;
+                border-radius:8px; padding:12px; margin:0 0 12px; flex:none; }
+  .script-text mark{ background:#ffe082; padding:0 2px; border-radius:3px; }
+  .vmeta{ border-top:1px solid var(--line); padding-top:10px; margin-bottom:14px; }
+  .mlabel{ font-size:11px; color:var(--hint); margin-bottom:6px; }
+  .pts{ font-size:13px; color:var(--sub); line-height:1.8; }
+  .avoid{ font-size:13px; color:var(--red-tx); margin-top:6px; }
+  .ver .btn{ margin-top:auto; }
+  .preview-card{ border:1.5px solid var(--orange); }
+  .pv-grid{ display:grid; grid-template-columns:1fr 190px; gap:16px; }
+  .pv-actions{ display:flex; flex-direction:column; gap:10px; }
+  .pv-actions .btn{ width:100%; }
+
+  /* 触达记录 */
+  .htable-wrap{ overflow-x:auto; }
+  table.htable{ width:100%; border-collapse:collapse; font-size:13px; min-width:520px; }
+  .htable th{ text-align:left; color:var(--hint); font-weight:500; font-size:12px;
+              padding:10px 8px; background:#f7f9fc; }
+  .htable td{ padding:12px 8px; border-bottom:1px solid var(--line); }
+  .htable tbody tr:hover{ background:#eef4fe; }
+  .rpill{ display:inline-block; padding:3px 12px; border-radius:14px; font-size:12px; }
+  .rp-ok{ background:var(--green-bg); color:var(--green-tx); }
+  .rp-bad{ background:var(--gray-bg); color:var(--gray-tx); }
+  .rp-mid{ background:var(--blue-bg); color:var(--blue-tx); }
+  .week-card .week-big{ font-size:16px; font-weight:700; }
+  .week-card .week-big b{ color:var(--orange); font-size:22px; }
+  .hist-ctrl{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .hist-ctrl select{ width:170px; }
+
+  /* 设置 */
+  .about-logo{ width:44px; height:44px; border-radius:12px; background:var(--navy); color:var(--orange);
+               display:flex; align-items:center; justify-content:center; font-size:22px; flex:none; }
+  .about-head{ display:flex; gap:12px; align-items:center; margin-bottom:12px; }
+  .nsi{ background:#eef4fe; border-radius:10px; padding:14px 16px; margin:14px 0; }
+  .nsi b{ font-size:14px; } .nsi p{ font-size:13px; color:var(--sub); margin:8px 0 0; line-height:1.7; }
+  .always{ font-size:14px; line-height:2; margin:6px 0 0; color:var(--ink); }
+  .stage-legend{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+  .foot-note{ max-width:1120px; padding:0 28px 40px; }
+
+  /* 加载态 */
+  .loading-card .spin{ width:22px; height:22px; border:2.5px solid #f3c39d;
+                       border-top-color:var(--orange); border-radius:50%;
+                       animation:rot .8s linear infinite; }
+  .loading-card .lt{ display:flex; align-items:center; gap:12px; font-size:15px; font-weight:700; }
+  .loading-card .lsub{ font-size:12px; color:var(--hint); margin:8px 0 12px; }
+  .skel{ height:12px; border-radius:6px; background:#eef1f6; margin:8px 0; }
+  .loading-card .btn{ margin-top:12px; }
+
+  /* toast */
+  #toast{ position:fixed; left:50%; bottom:32px; transform:translateX(-50%) translateY(20px);
+          background:#1c2b4a; color:#fff; font-size:14px; padding:12px 22px; border-radius:10px;
+          opacity:0; pointer-events:none; transition:all .25s; z-index:200; max-width:88vw;
+          box-shadow:0 6px 24px rgba(0,0,0,.2); display:flex; align-items:center; gap:10px; }
+  #toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+  #toast.ok{ background:#1e7e34; } #toast.err{ background:#c62828; }
+
+  /* ---------- 移动端 ---------- */
+  
+
+    #sidebar{ display:none; }
+    #page{ margin-left:0; }
+    #page_head{ display:none; }
+    main{ padding:14px 14px 150px; }
+    #m_header{ display:block; position:sticky; top:0; z-index:60; background:#fff;
+               border-bottom:1px solid var(--line); padding:14px 16px 0; }
+    #m_header h1{ margin:0; font-size:19px; }
+    #m_header p{ margin:4px 0 0; font-size:12px; color:var(--sub); }
+    #m_tabs{ display:flex; margin-top:10px; }
+    #m_tabs button{ flex:1; border:0; background:none; padding:10px 2px 12px; font-size:11px;
+                    color:var(--hint); cursor:pointer; display:flex; flex-direction:column;
+                    align-items:center; gap:5px; border-bottom:2.5px solid transparent; }
+    #m_tabs button svg{ width:21px; height:21px; }
+    #m_tabs button.active{ color:var(--orange); border-bottom-color:var(--orange); font-weight:600; }
+    .cols-2, .cols-2n{ grid-template-columns:1fr; }
+    .ctrl-card .ctrl-row{ flex-direction:column; align-items:stretch; gap:14px; }
+    .btn.big{ width:100%; }
+    .ver-grid{ grid-template-columns:1fr; }
+    .pv-grid{ grid-template-columns:1fr; }
+    .card-foot{ flex-direction:column; align-items:stretch; }
+    .card-foot .btn{ width:100%; }
+    .card-foot .only-desktop{ display:none; }
+    .apply-row{ flex-direction:column; align-items:stretch; }
+    #m_bottombar{ display:flex; position:fixed; left:0; right:0; bottom:0; z-index:70;
+                  background:#fff; border-top:1px solid var(--line); padding:6px 0 10px; }
+    #m_bottombar button{ flex:1; border:0; background:none; font-size:10px; color:var(--hint);
+                         cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px; }
+    #m_bottombar button svg{ width:22px; height:22px; }
+    #m_bottombar button.active{ color:var(--orange); font-weight:600; }
+    #m_action{ position:fixed; left:0; right:0; bottom:64px; z-index:65; padding:10px 16px;
+               background:linear-gradient(transparent, var(--bg) 40%); display:none; }
+    #m_action.show{ display:block; }
+    #m_action .btn{ width:100%; padding:14px; font-size:16px;
+                    box-shadow:0 4px 16px rgba(239,106,26,.35); }
+    #toast{ bottom:140px; }
+    .foot-note{ padding:0 14px 20px; }
+  </style>
+</head>
+<body>
+
+
+<!-- 移动端顶栏 -->
+<header id="m_header">
+  <h1 id="m_title">画像录入</h1>
+  <p id="m_sub"></p>
+  <nav id="m_tabs"></nav>
+</header>
+
+<div id="page">
+
+  <main>
+    <!-- Tab1 画像录入 -->
+    <section id="t1" class="tabpage active">
+      <div class="cols-2">
+        <div class="card">
+          <h3>从一句备注开始</h3>
+          <p class="desc">把微信里的零散信息，整理为下次表达的依据。</p>
+          <div class="chips" id="t1_chips"></div>
+          <textarea id="t1_input" placeholder="一句话描述客户，如：纹眉-35岁-怕疼-二次到店意向高"></textarea>
+          <button class="btn primary block" id="t1_go">整理成画像</button>
+          <div id="t1_seed_note" hidden>
+            <div class="seed-title">已载入示例：<b>张姐</b></div>
+            <div class="seed-box">买过热玛吉，客单价3万档，半年购2次。怕疼，更在意恢复期短。上次问双11有没有专属优惠。</div>
+            <p class="hint">只整理您提供的信息，不补写年龄或消费记录。示例内容不会自动触达客户。</p>
+          </div>
+        </div>
+        <div class="card" id="t1_card" hidden>
+          <div class="card-head"><h3 id="t1_p_title">画像</h3><span class="head-note">来自微信备注 · 可编辑</span></div>
+          <div id="t1_portrait"></div>
+          <div class="card-foot">
+            <span class="hint">先核对画像，再保存。AI 不替您判断客户意愿。</span>
+            <button class="btn primary only-desktop" id="t1_save">保存画像</button>
+          </div>
+        </div>
+        <div class="card" id="t1_empty">
+          <p class="desc">在左侧输入一句话备注，点「整理成画像」；或点上方客户名，查看已保存的画像。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab2 分层洞察 -->
+    <section id="t2" class="tabpage">
+      <div class="cols-2n">
+        <div class="card">
+          <div class="card-head"><h3>我的客户</h3><span class="head-note" id="t2_count"></span></div>
+          <div class="search"><input type="text" id="t2_search" placeholder="搜索客户称呼"></div>
+          <div id="t2_list"></div>
+        </div>
+        <div>
+          <div class="card" id="t2_result" hidden>
+            <div class="card-head"><h3 id="t2_name"></h3><span class="head-note">依据已知画像</span></div>
+            <div><span class="big-stage" id="t2_bigstage"></span></div>
+            <p class="desc" id="t2_facts"></p>
+          </div>
+          <div class="card" id="t2_strat" hidden>
+            <h3 class="strat-title">◎ 只针对<span id="t2_sname"></span>的下一步</h3>
+            <p class="strat-text" id="t2_strategy"></p>
+            <div class="warnbox">⚠ 打扰风险提示：<span id="t2_warn"></span></div>
+            <hr>
+            <div class="blabel">沟通边界</div>
+            <p class="strat-text" id="t2_bound"></p>
+          </div>
+          <div class="apply-row" id="t2_applyrow" hidden>
+            <span class="hint">分层服务于对一个人的表达判断，不是批量群发名单。应用后仍需人工确认话术与客户意愿。</span>
+            <button class="btn primary only-desktop" id="t2_apply">应用此分层</button>
+          </div>
+          <div class="card" id="t2_empty"><p class="desc">点击左侧客户，AI 按判定树给出分层与表达策略。</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab3 话术生成 -->
+    <section id="t3" class="tabpage">
+      <div class="card ctrl-card">
+        <div class="ctrl-row">
+          <div class="grow">
+            <div class="flabel">当前客户</div>
+            <div class="chips" id="t3_chips"></div>
+          </div>
+          <div>
+            <div class="flabel">表达对象</div>
+            <div class="seg" id="t3_aud">
+              <button data-a="技术型">技术型</button><button data-a="业务型" class="on">业务型</button><button data-a="老板型">老板型</button>
+            </div>
+          </div>
+          <button class="btn primary big" id="t3_go">生成话术</button>
+        </div>
+      </div>
+      <div id="t3_versions" class="ver-grid"></div>
+      <div class="card preview-card" id="t3_preview_card" hidden>
+        <div class="card-head"><h3 id="t3_pv_title">话术预览</h3><span class="head-note">可编辑 · 核对后由您手动触达</span></div>
+        <div class="pv-grid">
+          <textarea id="t3_preview" style="min-height:150px"></textarea>
+          <div class="pv-actions">
+            <button class="btn outline" id="t3_copy">复制话术</button>
+            <button class="btn primary" id="t3_tolog">去登记</button>
+            <span class="hint">不会自动发送给客户</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab4 触达记录 -->
+    <section id="t4" class="tabpage">
+      <div class="cols-2n">
+        <div>
+          <div class="card">
+            <div class="card-head"><h3>登记这次触达</h3><span class="head-note" id="t4_src">手动登记</span></div>
+            <label class="flabel">客户</label>
+            <select id="t4_customer"></select>
+            <label class="flabel">话术版本 · 来自预览</label>
+            <input type="text" id="t4_version" placeholder="如：亲切版（从话术页选用后自动带入）">
+            <label class="flabel">渠道</label>
+            <select id="t4_channel"><option>微信</option><option>电话</option><option>面谈</option><option>其他</option></select>
+            <label class="flabel">客户反应 *</label>
+            <select id="t4_react">
+              <option value="">请选择</option>
+              <option>愿意了解</option><option>继续咨询</option><option>无回复</option>
+              <option>已成交</option><option>待跟进</option>
+            </select>
+            <div class="ferr" id="t4_react_err" hidden>请选择客户反应后再登记</div>
+            <button class="btn primary block" id="t4_save">登记</button>
+            <p class="hint">只记录人工登记结果，不会发送消息。未收到回复也可登记为"无回复"。</p>
+          </div>
+          <div class="card week-card">
+            <div class="week-big">本周有效触达：<b id="week_n">0</b> 次</div>
+            <p class="hint">收到有效客户回应的触达，而非发送数量</p>
+            <p class="hint" id="week_range"></p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>触达历史</h3><span class="head-note" id="t4_hist_note"></span></div>
+          <div class="hist-ctrl">
+            <select id="t4_filter"><option value="">全部客户</option></select>
+            <span class="hint" id="t4_weeklbl"></span>
+          </div>
+          <div class="htable-wrap">
+            <table class="htable">
+              <thead><tr><th>客户名</th><th>版本</th><th>渠道</th><th>反应</th><th>发送时间</th></tr></thead>
+              <tbody id="t4_tbody"></tbody>
+            </table>
+          </div>
+          <p class="hint">只有"愿意了解 / 继续咨询 / 已成交"等有效回应计入指标，"无回复"不计入。</p>
+          <p class="hint">陈阿姨已明确拒绝，未列入近期触达。尊重拒绝，不以登记数量推动再次营销。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab5 设置 -->
+    <section id="t5" class="tabpage">
+      <div class="cols-2">
+        <div class="card">
+          <h3>⚙ 服务配置</h3>
+          <label class="flabel">后端服务地址</label>
+          <input type="text" id="s_api" placeholder="https://api.example.com">
+          <p class="hint">示例地址，请替换为您的服务地址。仅用于 AI 整理与生成，不自动发送消息。<span id="s_api_saved"></span></p>
+          <hr>
+          <h3>用 5 位客户熟悉工作流程</h3>
+          <p class="desc">张姐、小美、王女士、Lisa、陈阿姨，覆盖五种客户阶段。示例不与真实客户沟通。</p>
+          <button class="btn outline" id="s_seed">一键载入示例客户</button>
+          <div class="stage-legend">
+            <span class="badge b-新用户">● 新用户</span><span class="badge b-活跃">● 活跃</span><span class="badge b-高价值">● 高价值</span><span class="badge b-沉睡">● 沉睡</span><span class="badge b-流失">● 流失</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="about-head">
+            <div class="about-logo">✦</div>
+            <div><b style="font-size:16px">AI 销售助手</b><div class="hint" style="margin:2px 0 0">个人表达工作台 · v1.0</div></div>
+          </div>
+          <p class="desc">给一线销售个人的 AI 表达决策助手：把微信备注整理成客户画像，按画像生成三版话术，人工确认后再触达。</p>
+          <div class="nsi">
+            <b>北极星指标：有效触达</b>
+            <p>收到有效客户回应的触达，而非发送数量。无回复不计入；同一次触达不重复计数。</p>
+          </div>
+          <p class="desc">不做运营后台的批量群发，只做"对这个人说这句话"的个性化决策。</p>
+          <hr>
+          <div class="blabel">三个始终</div>
+          <p class="always">始终以已知事实为依据<br>始终由销售人工确认与发送<br>始终尊重客户拒绝与沟通边界</p>
+        </div>
+      </div>
+      <p class="hint foot-note" style="padding:0">使用真实客户信息前，请确认已获得适当授权；不记录不必要的敏感信息。</p>
+    </section>
+  </main>
+</div>
+
+<!-- 移动端底部操作条 -->
+<div id="m_action"><button class="btn primary" id="m_action_btn"></button></div>
+<!-- 移动端底部导航 -->
+<nav id="m_bottombar"></nav>
+<div id="toast"></div>
+<script>
+"use strict";
+/* ================= 基础 ================= */
+const $ = id => document.getElementById(id);
+const STAGES = ["新用户","活跃","高价值","沉睡","流失"];
+const EFFECTIVE = ["愿意了解","继续咨询","已成交"];
+const BOUND = {
+  "流失": "尊重拒绝，不再主动触达；仅在客户重新咨询时回应。",
+  "高价值": "不承诺效果与时效，不以优惠催促决策；以理解顾虑为先。",
+  "沉睡": "不连续追问，用一次有价值的信息重新建立联系。",
+  "新用户": "先建立信任，不急于推销；说明信息用途。",
+  "活跃": "保持节奏，不打扰；有新信息时再触达。"
+};
+const VER_TAG = {"正式版":"清晰 · 审慎","亲切版":"真诚 · 贴心","玩梗版":"轻松 · 不冒犯"};
+function apiBase(){
+  let b = (localStorage.getItem("sales_api_base") || "").trim().replace(/\/+$/,"");
+  return b || location.origin;
+}
+async function api(path, opts){
+  opts = opts || {};
+  opts.headers = Object.assign({"Content-Type":"application/json"}, opts.headers||{});
+  const r = await fetch(apiBase() + path, opts);
+  const data = await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(data.error || ("请求失败 " + r.status));
+  return data;
+}
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,
+  c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function highlight(text, words){
+  let h = esc(text);
+  (words||[]).forEach(w=>{ if(w) h = h.split(esc(w)).join("<mark>"+esc(w)+"</mark>"); });
+  return h;
+}
+let toastTimer = null;
+function toast(msg, type){
+  const t = $("toast");
+  t.className = type || "";
+  t.innerHTML = (type==="ok" ? "✓ " : type==="err" ? "⚠ " : "") + esc(msg);
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove("show"), 2600);
+}
+function busy(btn, on, txt){
+  btn.disabled = on;
+  if(on){ btn.dataset.t = btn.innerHTML; btn.innerHTML = '<span class="spin"></span>' + esc(txt||"处理中…"); }
+  else if(btn.dataset.t){ btn.innerHTML = btn.dataset.t; }
+}
+function loadingCard(title, sub, btnTxt){
+  return '<div class="card loading-card"><div class="lt"><span class="spin"></span>' + esc(title) + '</div>'
+    + '<div class="lsub">' + esc(sub) + '</div>'
+    + '<div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div>'
+    + '<div class="skel" style="width:85%"></div>'
+    + '<button class="btn primary" disabled><span class="spin"></span>' + esc(btnTxt) + '</button></div>';
+}
+
+/* ================= 导航 ================= */
+const ICONS = {
+  t1:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="11" r="2.4"/><path d="M5.5 17c.6-2.4 2-3.6 3.5-3.6s2.9 1.2 3.5 3.6M15 9h4M15 13h4"/></svg>',
+  t2:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-8M21 20H3"/></svg>',
+  t3:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v9H9l-5 4z"/><path d="M8 10h8M8 13h5"/></svg>',
+  t4:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4a3 3 0 0 1 6 0M9 12l2 2 4-4"/></svg>',
+  t5:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.07-.4.1-.8.1-1.2z"/></svg>'
+};
+const TABMETA = {
+  t1:{name:"画像录入", sub:"把备注变成理解，先核对，再保存"},
+  t2:{name:"分层洞察", sub:"分层不是贴标签，而是决定如何尊重地表达"},
+  t3:{name:"话术生成", sub:"三种表达，确认后再触达"},
+  t4:{name:"触达记录", sub:"记录真实回应，不把发送数量当作成效"},
+  t5:{name:"设置", sub:"配置服务，了解产品的边界与衡量方式"}
+};
+let curTab = "t1";
+["m_tabs","m_bottombar"].forEach(navId=>{
+  const nav = $(navId);
+  Object.keys(TABMETA).forEach(t=>{
+    const b = document.createElement("button");
+    b.dataset.t = t;
+    b.innerHTML = ICONS[t] + "<span>" + TABMETA[t].name + "</span>";
+    if(t===curTab) b.classList.add("active");
+    b.onclick = ()=>switchTab(t);
+    nav.appendChild(b);
+  });
+});
+function switchTab(t){
+  curTab = t;
+  document.querySelectorAll("#m_tabs button,#m_bottombar button")
+    .forEach(x=>x.classList.toggle("active", x.dataset.t===t));
+  document.querySelectorAll(".tabpage").forEach(x=>x.classList.toggle("active", x.id===t));
+  $("m_title").textContent = TABMETA[t].name;
+  $("m_sub").textContent = TABMETA[t].sub;
+  if(t==="t3" && t3_cname) $("m_sub").textContent = "给" + t3_cname + "的三种表达，确认后再触达";
+  updateMAction();
+  window.scrollTo(0,0);
+}
+/* 移动端底部操作条 */
+function updateMAction(){
+  const bar = $("m_action"), btn = $("m_action_btn");
+  bar.classList.remove("show");
+  if(curTab==="t1" && portrait){ btn.textContent = "保存画像"; btn.onclick = savePortrait; bar.classList.add("show"); }
+  else if(curTab==="t2" && t2_result){ btn.textContent = "应用此分层"; btn.onclick = applySegment; bar.classList.add("show"); }
+}
+window.addEventListener("resize", updateMAction);
+
+/* ================= 客户 ================= */
+let customers = [];
+async function loadCustomers(){
+  try{ customers = await api("/api/profiles"); }
+  catch(e){ toast("加载客户失败：" + e.message, "err"); return; }
+  renderChips("t1_chips", t1_pid, id=>{ t1_pid = id; loadPortraitFor(id); });
+  renderChips("t3_chips", t3_pid, id=>{ t3_pid = id; onT3Customer(); });
+  const s4 = $("t4_customer"); s4.innerHTML = "";
+  customers.forEach(c=>{ const o=document.createElement("option"); o.value=c.id;
+    o.textContent = c["称呼"] + "（" + (c["客户阶段"]||"") + "）"; s4.appendChild(o); });
+  const f = $("t4_filter"); const keep = f.value;
+  f.innerHTML = '<option value="">全部客户</option>';
+  customers.forEach(c=>{ const o=document.createElement("option"); o.value=c.id; o.textContent=c["称呼"]; f.appendChild(o); });
+  f.value = keep;
+  renderT2List("");
+  $("t2_count").textContent = customers.length ? customers.length + " 位客户" : "";
+  if(!t1_pid && customers.length){ t1_pid = customers[0].id; renderChips("t1_chips", t1_pid, id=>{ t1_pid=id; loadPortraitFor(id); }); loadPortraitFor(t1_pid); }
+  if(!t3_pid && customers.length){ t3_pid = customers[0].id; renderChips("t3_chips", t3_pid, id=>{ t3_pid=id; onT3Customer(); }); onT3Customer(); }
+}
+function renderChips(boxId, activeId, onPick){
+  const box = $(boxId); box.innerHTML = "";
+  customers.forEach(c=>{
+    const b = document.createElement("button");
+    b.textContent = c["称呼"];
+    if(String(c.id)===String(activeId)) b.classList.add("on");
+    b.onclick = ()=>{ renderChips(boxId, c.id, onPick); onPick(c.id); };
+    box.appendChild(b);
+  });
+}
+function cname(id){ const c = customers.find(x=>String(x.id)===String(id)); return c ? c["称呼"] : ""; }
+/* ================= Tab1 画像录入 ================= */
+let t1_pid = null, portrait = null, editingSec = null;
+$("t1_go").onclick = async ()=>{
+  const text = $("t1_input").value.trim();
+  if(!text){ toast("请先输入一句话描述", "err"); return; }
+  const btn = $("t1_go"); busy(btn, true, "整理中…");
+  try{
+    const p = await api("/api/ai/organize", {method:"POST", body: JSON.stringify({text})});
+    portrait = normPortrait(p); portrait.id = null; editingSec = null;
+    renderPortrait();
+    toast("画像已整理，请核对后再保存", "ok");
+  }catch(e){ toast(e.message, "err"); }  // 不清空输入框，不丢数据
+  busy(btn, false);
+};
+function normPortrait(p){
+  const bi = p["基本信息"] || {};
+  return {
+    id: p.id || null,
+    "称呼": p["称呼"] || bi["称呼"] || "",
+    "基本信息": {
+      "称呼": p["称呼"] || bi["称呼"] || "",
+      "年龄": bi["年龄"] || "",
+      "联系方式": bi["联系方式"] || bi["职业"] || "",
+      "其他": bi["其他"] || bi["性别"] || ""
+    },
+    "行为特征": Array.isArray(p["行为特征"]) ? p["行为特征"] : (p["行为特征"] ? [p["行为特征"]] : []),
+    "在意什么": p["在意什么"] || "",
+    "上次聊到哪": p["上次聊到哪"] || "",
+    "客户阶段": p["客户阶段"] || "新用户"
+  };
+}
+async function loadPortraitFor(id){
+  try{
+    const p = await api("/api/profiles");
+    const found = p.find(x=>String(x.id)===String(id));
+    if(found){ portrait = normPortrait(found); editingSec = null; renderPortrait(); }
+  }catch(e){ toast("加载画像失败：" + e.message, "err"); }
+}
+function renderPortrait(){
+  const has = !!portrait;
+  $("t1_card").hidden = !has; $("t1_empty").hidden = has;
+  if(!has){ updateMAction(); return; }
+  const nm = portrait["称呼"] || "未命名";
+  $("t1_p_title").textContent = nm + "的画像";
+  const bi = portrait["基本信息"], bt = portrait["行为特征"];
+  const st = portrait["客户阶段"] || "新用户";
+  let h = "";
+  // 基本信息
+  h += psec("base", "基本信息",
+    editingSec==="base" ? editBase(bi) :
+    '<span class="kv"><b>称呼：</b>' + esc(bi["称呼"]||nm) + '</span>'
+    + '<span class="kv"><b>年龄：</b>' + esc(bi["年龄"]||"待补充") + '</span>'
+    + '<span class="kv"><b>联系方式：</b>' + esc(bi["联系方式"]||"待补充") + '</span>'
+    + '<div class="hint">其他基本信息：' + esc(bi["其他"]||"待补充") + '；仅记录已知事实，不推测。</div>');
+  // 行为特征
+  h += psec("bt", "行为特征",
+    editingSec==="bt" ? editBt(bt) :
+    (bt.length ? bt.map(x=>'<span class="pchip">'+esc(x)+'</span>').join("") : '<span class="hint">待补充</span>'));
+  // 在意什么
+  h += psec("care", "在意什么",
+    editingSec==="care" ? editText("f_care", portrait["在意什么"], "如：怕疼，更在意恢复期短") :
+    (portrait["在意什么"] ? '<span class="quote">“' + esc(portrait["在意什么"]) + '”</span>' : '<span class="hint">待补充</span>'));
+  // 上次聊到哪
+  h += psec("last", "上次聊到哪",
+    editingSec==="last" ? editText("f_last", portrait["上次聊到哪"], "如：上次问双11有没有专属优惠") :
+    (portrait["上次聊到哪"]
+      ? '🕐 ' + esc(portrait["上次聊到哪"]) + '<div class="hint">时间按备注保留 · 未注明日期不补写</div>'
+      : '<span class="hint">待补充</span>'));
+  // 客户阶段
+  h += psec("stage", "客户阶段",
+    editingSec==="stage"
+      ? '<select id="f_stage">' + STAGES.map(s=>'<option'+(s===st?' selected':'')+'>'+s+'</option>').join("") + '</select>' + editBtns()
+      : '<span class="badge b-' + esc(st) + '">● ' + esc(st) + '</span>');
+  $("t1_portrait").innerHTML = h;
+  bindEditBtns();
+  updateMAction();
+}
+function psec(key, label, body){
+  return '<div class="psec"><div class="psec-head"><span>' + esc(label) + '</span>'
+    + '<button class="editbtn" data-sec="' + key + '" title="编辑">✎</button></div>'
+    + '<div class="psec-body">' + body + '</div></div>';
+}
+function editBtns(){
+  return '<div class="edit-row"><button class="btn primary" id="edit_ok">确定</button>'
+    + '<button class="btn outline" id="edit_cancel">取消</button></div>';
+}
+function editBase(bi){
+  return '<input type="text" id="f_b_name" placeholder="称呼" value="' + esc(bi["称呼"]) + '" style="margin-bottom:6px">'
+    + '<input type="text" id="f_b_age" placeholder="年龄" value="' + esc(bi["年龄"]) + '" style="margin-bottom:6px">'
+    + '<input type="text" id="f_b_contact" placeholder="联系方式" value="' + esc(bi["联系方式"]) + '" style="margin-bottom:6px">'
+    + '<input type="text" id="f_b_other" placeholder="其他基本信息" value="' + esc(bi["其他"]) + '">'
+    + editBtns();
+}
+function editBt(bt){ return '<textarea id="f_bt" style="min-height:70px" placeholder="每行一条，如：买过热玛吉">' + esc(bt.join("\n")) + '</textarea>' + editBtns(); }
+function editText(id, val, ph){ return '<input type="text" id="' + id + '" placeholder="' + esc(ph) + '" value="' + esc(val) + '">' + editBtns(); }
+function bindEditBtns(){
+  document.querySelectorAll("#t1_portrait .editbtn").forEach(b=>{
+    b.onclick = ()=>{ editingSec = b.dataset.sec; renderPortrait(); };
+  });
+  const ok = $("edit_ok"), cancel = $("edit_cancel");
+  if(ok) ok.onclick = ()=>{
+    if(editingSec==="base"){
+      portrait["基本信息"] = {"称呼":$("f_b_name").value.trim()||portrait["称呼"],
+        "年龄":$("f_b_age").value.trim(),"联系方式":$("f_b_contact").value.trim(),"其他":$("f_b_other").value.trim()};
+      if($("f_b_name").value.trim()) portrait["称呼"] = $("f_b_name").value.trim();
+    }else if(editingSec==="bt"){
+      portrait["行为特征"] = $("f_bt").value.split("\n").map(s=>s.trim()).filter(Boolean);
+    }else if(editingSec==="care"){ portrait["在意什么"] = $("f_care").value.trim(); }
+    else if(editingSec==="last"){ portrait["上次聊到哪"] = $("f_last").value.trim(); }
+    else if(editingSec==="stage"){ portrait["客户阶段"] = $("f_stage").value; }
+    editingSec = null; renderPortrait();
+  };
+  if(cancel) cancel.onclick = ()=>{ editingSec = null; renderPortrait(); };
+}
+async function savePortrait(){
+  if(!portrait) return;
+  const name = (portrait["称呼"]||"").trim();
+  if(!name){ toast("称呼必填，请先编辑基本信息", "err"); return; }
+  const body = {
+    "称呼": name,
+    "基本信息": portrait["基本信息"],
+    "行为特征": portrait["行为特征"],
+    "在意什么": portrait["在意什么"],
+    "上次聊到哪": portrait["上次聊到哪"],
+    "客户阶段": portrait["客户阶段"]
+  };
+  const btn = $("m_action_btn");
+  busy(btn, true, "保存中…");
+  try{
+    if(portrait.id) await api("/api/profiles/" + portrait.id, {method:"PUT", body: JSON.stringify(body)});
+    else { const r = await api("/api/profiles", {method:"POST", body: JSON.stringify(body)}); portrait.id = r.id; }
+    t1_pid = portrait.id;
+    $("t1_input").value = "";
+    await loadCustomers();
+    toast("画像卡已保存", "ok");
+  }catch(e){ toast(e.message, "err"); }
+  busy(btn, false);
+}
+$("t1_save").onclick = savePortrait;
+/* ================= Tab2 分层洞察 ================= */
+let t2_pid = null, t2_result = null;
+$("t2_search").oninput = e => renderT2List(e.target.value.trim());
+function renderT2List(kw){
+  const box = $("t2_list"); box.innerHTML = "";
+  customers.filter(c=>!kw || (c["称呼"]||"").includes(kw)).forEach(c=>{
+    const st = c["客户阶段"] || "新用户";
+    const b = document.createElement("button");
+    b.className = "crow" + (String(c.id)===String(t2_pid) ? " on" : "");
+    b.innerHTML = '<div class="r1"><b>' + esc(c["称呼"]) + '</b><span class="badge b-' + esc(st) + '">● ' + esc(st) + '</span></div>'
+      + '<div class="csub">' + esc(c["上次聊到哪"] || c["在意什么"] || "暂无备注") + '</div>';
+    b.onclick = ()=>runSegment(c.id);
+    box.appendChild(b);
+  });
+  if(!box.children.length) box.innerHTML = '<p class="hint">没有匹配的客户</p>';
+}
+async function runSegment(pid){
+  t2_pid = pid; renderT2List($("t2_search").value.trim());
+  $("t2_empty").hidden = true;
+  $("t2_result").hidden = true; $("t2_strat").hidden = true; $("t2_applyrow").hidden = true;
+  const nm = cname(pid);
+  const holder = $("t2_empty"); holder.hidden = false;
+  holder.innerHTML = loadingCard("AI 正在判断" + nm + "的分层…", "判定树：流失一票否决 ＞ 高价值 ＞ 沉睡(30天) ＞ 新用户 ＞ 活跃默认", "分层中…");
+  t2_result = null; updateMAction();
+  try{
+    t2_result = await api("/api/ai/segment", {method:"POST", body: JSON.stringify({profile_id: Number(pid)})});
+    const st = t2_result["客户阶段"] || "新用户";
+    holder.hidden = true;
+    $("t2_name").textContent = nm; $("t2_sname").textContent = nm;
+    const bs = $("t2_bigstage"); bs.textContent = "· " + st; bs.className = "big-stage st-" + st;
+    const prof = customers.find(x=>String(x.id)===String(pid)) || {};
+    const facts = (prof["行为特征"]||[]).slice(0,2).join("，");
+    $("t2_facts").textContent = facts ? facts + "。" : "";
+    $("t2_strategy").textContent = t2_result["策略一句话"] || "";
+    $("t2_warn").textContent = t2_result["打扰风险提示"] || "";
+    $("t2_bound").textContent = BOUND[st] || "";
+    $("t2_result").hidden = false; $("t2_strat").hidden = false; $("t2_applyrow").hidden = false;
+  }catch(e){ holder.innerHTML = '<p class="hint">分层失败：' + esc(e.message) + '</p>'; }
+  updateMAction();
+}
+async function applySegment(){
+  if(!t2_result || !t2_pid) return;
+  const btn = $("m_action_btn");
+  busy(btn, true, "应用中…");
+  try{
+    await api("/api/profiles/" + t2_pid, {method:"PUT",
+      body: JSON.stringify({"客户阶段": t2_result["客户阶段"]})});
+    await loadCustomers();
+    toast("已应用" + t2_result["客户阶段"] + "分层", "ok");
+  }catch(e){ toast(e.message, "err"); }
+  busy(btn, false);
+}
+$("t2_apply").onclick = applySegment;
+
+/* ================= Tab3 话术生成 ================= */
+let t3_pid = null, t3_data = null, t3_script_id = 0, t3_chosen = "", t3_audience = "业务型", t3_cname = "";
+document.querySelectorAll("#t3_aud button").forEach(b=>{
+  b.onclick = ()=>{
+    document.querySelectorAll("#t3_aud button").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on"); t3_audience = b.dataset.a;
+  };
+});
+function onT3Customer(){
+  t3_cname = cname(t3_pid);
+  t3_data = null; t3_chosen = "";
+  $("t3_versions").innerHTML = ""; $("t3_preview_card").hidden = true;
+  if(curTab==="t3") $("m_sub").textContent = t3_cname ? "给" + t3_cname + "的三种表达，确认后再触达" : TABMETA.t3.sub;
+}
+$("t3_go").onclick = async ()=>{
+  if(!t3_pid){ toast("还没有客户，先去画像页录入或去设置载入示例客户", "err"); return; }
+  const btn = $("t3_go"); busy(btn, true, "生成中…");
+  const nm = cname(t3_pid);
+  $("t3_preview_card").hidden = true; t3_chosen = "";
+  $("t3_versions").innerHTML = loadingCard("正在为" + nm + "生成三版话术…", "依据已确认画像 · 不自动发送", "生成中…");
+  try{
+    t3_data = await api("/api/ai/scripts", {method:"POST",
+      body: JSON.stringify({profile_id: Number(t3_pid), audience: t3_audience})});
+    renderVersions(t3_data.versions || []);
+  }catch(e){
+    $("t3_versions").innerHTML = '<div class="card"><p class="hint">生成失败：' + esc(e.message) + '</p></div>';
+  }
+  busy(btn, false);
+};
+function renderVersions(versions){
+  const box = $("t3_versions"); box.innerHTML = "";
+  versions.forEach(v=>{
+    const vn = v["版本"] || "";
+    const card = document.createElement("div");
+    card.className = "card ver" + (vn===t3_chosen ? " sel" : "");
+    const sel = vn===t3_chosen;
+    card.innerHTML =
+      '<div class="ver-head"><h3>' + esc(vn) + '</h3><span class="vpill' + (sel?' sel':'') + '">'
+      + (sel ? '已选用' : esc(VER_TAG[vn]||"")) + '</span></div>'
+      + '<div class="script-text">' + highlight(v["文本"]||"", v["风险词"]) + "</div>"
+      + '<div class="vmeta"><div class="mlabel">用到的画像信息点</div><div class="pts">'
+      + esc((v["信息点"]||[]).join(" · ") || "—") + '</div>'
+      + ((v["风险词"]||[]).length ? '<div class="avoid">避免用词：' + esc(v["风险词"].join("、")) + '</div>' : '')
+      + "</div>";
+    const b = document.createElement("button");
+    b.className = "btn " + (sel ? "primary" : "outline");
+    b.textContent = sel ? "已选用 ✓" : "选用此版";
+    b.onclick = ()=>chooseVersion(v);
+    card.appendChild(b); box.appendChild(card);
+  });
+}
+async function chooseVersion(v){
+  t3_chosen = v["版本"] || "";
+  try{
+    const s = await api("/api/scripts", {method:"POST", body: JSON.stringify({
+      profile_id: Number(t3_pid), "表达对象": t3_audience,
+      "三版": t3_data.versions, "选中版本": t3_chosen })});
+    t3_script_id = s.id;
+  }catch(e){ toast("话术存档失败：" + e.message + "（可继续预览复制）", "err"); }
+  renderVersions(t3_data.versions || []);
+  $("t3_pv_title").textContent = "话术预览 · " + t3_cname + " / " + t3_chosen;
+  $("t3_preview").value = v["文本"] || "";
+  $("t3_preview_card").hidden = false;
+  $("t3_preview_card").scrollIntoView({behavior:"smooth", block:"nearest"});
+}
+async function copyText(t){
+  try{ await navigator.clipboard.writeText(t); return true; }
+  catch(e){
+    const ta = document.createElement("textarea"); ta.value = t;
+    document.body.appendChild(ta); ta.select();
+    try{ return document.execCommand("copy"); }catch(_){ return false; }
+    finally{ ta.remove(); }
+  }
+}
+$("t3_copy").onclick = async ()=>{
+  const ok = await copyText($("t3_preview").value);
+  if(ok) toast("已复制" + t3_chosen + "话术，不会自动发送给" + t3_cname, "ok");
+  else toast("复制失败，请手动长按复制", "err");
+};
+$("t3_tolog").onclick = ()=>{
+  if(t3_pid) $("t4_customer").value = t3_pid;
+  $("t4_version").value = t3_chosen;
+  $("t4_src").textContent = "来自" + t3_chosen + "预览";
+  switchTab("t4");
+};
+/* ================= Tab4 触达记录 ================= */
+$("t4_react").onchange = ()=>{
+  $("t4_react").classList.remove("err"); $("t4_react_err").hidden = true;
+};
+$("t4_filter").onchange = loadLogs;
+$("t4_save").onclick = async ()=>{
+  const pid = $("t4_customer").value;
+  if(!pid){ toast("请先选择客户", "err"); return; }
+  const react = $("t4_react").value;
+  if(!react){
+    $("t4_react").classList.add("err"); $("t4_react_err").hidden = false;
+    toast("请选择客户反应后再登记", "err"); return;
+  }
+  const btn = $("t4_save"); busy(btn, true, "登记中…");
+  try{
+    await api("/api/logs", {method:"POST", body: JSON.stringify({
+      profile_id: Number(pid), script_id: t3_script_id,
+      "话术版本": $("t4_version").value.trim(),
+      "渠道": $("t4_channel").value, "客户反应": react })});
+    t3_script_id = 0;
+    $("t4_version").value = ""; $("t4_src").textContent = "手动登记";
+    await loadLogs(); refreshWeek();
+    toast(EFFECTIVE.includes(react) ? "已登记，计入本周有效触达" : "已登记", "ok");
+  }catch(e){ toast(e.message, "err"); }
+  busy(btn, false);
+};
+function reactPill(r){
+  const cls = EFFECTIVE.includes(r) ? "rp-ok" : (r==="无回复" ? "rp-bad" : "rp-mid");
+  return '<span class="rpill ' + cls + '">' + esc(r||"—") + "</span>";
+}
+async function loadLogs(){
+  try{
+    const logs = await api("/api/logs");
+    const fid = $("t4_filter").value;
+    const rows = fid ? logs.filter(l=>String(l.profile_id)===String(fid)) : logs;
+    const tb = $("t4_tbody");
+    tb.innerHTML = rows.map(l=>
+      "<tr><td><b>" + esc(l["客户称呼"]||("客户"+l.profile_id)) + "</b></td>"
+      + "<td>" + esc(l["话术版本"]||"—") + "</td>"
+      + "<td>" + esc(l["渠道"]||"—") + "</td>"
+      + "<td>" + reactPill(l["客户反应"]) + "</td>"
+      + "<td style='color:var(--hint)'>" + esc((l["发送时间"]||"").slice(0,16)) + "</td></tr>").join("");
+    if(!rows.length) tb.innerHTML = '<tr><td colspan="5" style="color:var(--hint)">暂无记录</td></tr>';
+    $("t4_hist_note").textContent = "最新在前 · " + rows.length + " 条";
+  }catch(e){ toast("加载记录失败：" + e.message, "err"); }
+}
+function fmtDT(d){
+  const p = n => String(n).padStart(2,"0");
+  return d.getFullYear()+"."+p(d.getMonth()+1)+"."+p(d.getDate());
+}
+async function refreshWeek(){
+  try{
+    const logs = await api("/api/logs");
+    const d = new Date(); d.setHours(0,0,0,0);
+    d.setDate(d.getDate() - ((d.getDay()+6)%7));  // 本周一
+    const mon = new Date(d), sun = new Date(d); sun.setDate(sun.getDate()+6);
+    const p = n => String(n).padStart(2,"0");
+    const start = d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())+" 00:00:00";
+    const n = logs.filter(l => (l["发送时间"]||"") >= start && EFFECTIVE.includes(l["客户反应"])).length;
+    $("week_n").textContent = n; var _wside = $("week_n_side"); if(_wside) _wside.textContent = n;
+    $("week_range").textContent = fmtDT(mon) + " – " + fmtDT(sun);
+    $("t4_weeklbl").textContent = "本周 · " + fmtDT(mon).slice(5) + " – " + fmtDT(sun).slice(5);
+  }catch(e){ $("week_n").textContent = "-"; }
+}
+
+/* ================= Tab5 设置 ================= */
+$("s_api").value = localStorage.getItem("sales_api_base") || "";
+let apiSaveT = null;
+$("s_api").addEventListener("input", ()=>{
+  clearTimeout(apiSaveT);
+  apiSaveT = setTimeout(()=>{
+    localStorage.setItem("sales_api_base", $("s_api").value.trim());
+    $("s_api_saved").textContent = "已保存";
+    setTimeout(()=>{ $("s_api_saved").textContent = ""; }, 2000);
+    loadCustomers(); loadLogs(); refreshWeek();
+  }, 600);
+});
+$("s_seed").onclick = async ()=>{
+  if(!confirm("将清空现有客户/话术/记录并写入 5 个示例客户，继续？")) return;
+  const btn = $("s_seed"); busy(btn, true, "载入中…");
+  try{
+    const r = await api("/api/seed", {method:"POST"});
+    t1_pid = null; t3_pid = null; t2_pid = null; t2_result = null;
+    portrait = null;
+    localStorage.setItem("sales_seeded", "1");
+    $("t1_seed_note").hidden = false;
+    await loadCustomers(); await loadLogs(); refreshWeek();
+    toast("已载入 " + r.seeded + " 个示例客户", "ok");
+  }catch(e){ toast(e.message, "err"); }
+  busy(btn, false);
+};
+
+/* ================= 启动 ================= */
+$("m_sub").textContent = TABMETA.t1.sub;
+if(localStorage.getItem("sales_seeded")==="1") $("t1_seed_note").hidden = false;
+loadCustomers(); loadLogs(); refreshWeek();
+</script>
+</body>
+</html>
