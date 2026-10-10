@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 销售定向营销 App（demo）</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+         margin: 0; background: #f5f6f8; color: #222; }
+  header { background: #1a73e8; color: #fff; padding: 14px 16px; position: sticky; top: 0; z-index: 10; }
+  header h1 { margin: 0; font-size: 17px; }
+  header p { margin: 4px 0 0; font-size: 12px; opacity: .85; }
+  nav.tabs { display: flex; background: #fff; border-bottom: 1px solid #e0e0e0;
+              position: sticky; top: 0; z-index: 9; overflow-x: auto; }
+  nav.tabs button { flex: 1; min-width: 90px; border: 0; background: none; padding: 12px 6px;
+                    font-size: 14px; color: #666; border-bottom: 3px solid transparent; cursor: pointer; }
+  nav.tabs button.active { color: #1a73e8; border-bottom-color: #1a73e8; font-weight: 600; }
+  main { max-width: 720px; margin: 0 auto; padding: 14px 12px 60px; }
+  .tabpage { display: none; }
+  .tabpage.active { display: block; }
+  .card { background: #fff; border-radius: 10px; padding: 14px; margin-bottom: 12px;
+          box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .card h3 { margin: 0 0 10px; font-size: 15px; }
+  label.f { display: block; font-size: 13px; color: #555; margin: 10px 0 4px; }
+  input[type=text], textarea, select { width: 100%; padding: 9px 10px; font-size: 14px;
+      border: 1px solid #d5d5d5; border-radius: 8px; font-family: inherit; }
+  textarea { min-height: 88px; resize: vertical; }
+  .row { display: flex; gap: 8px; }
+  .row > * { flex: 1; }
+  button.btn { background: #1a73e8; color: #fff; border: 0; border-radius: 8px;
+               padding: 10px 16px; font-size: 14px; cursor: pointer; margin-top: 10px; }
+  button.btn:disabled { background: #9db9e8; cursor: default; }
+  button.ghost { background: #eef3fd; color: #1a73e8; }
+  .dim { border-left: 4px solid #1a73e8; padding: 8px 10px; margin: 8px 0; background: #fafbfe; border-radius: 0 8px 8px 0; }
+  .dim .k { font-size: 12px; color: #888; margin-bottom: 4px; }
+  .dim .v { font-size: 14px; }
+  .badge { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+  .b-新用户 { background: #e3f0fd; color: #1565c0; }
+  .b-活跃 { background: #e6f4ea; color: #1e7e34; }
+  .b-高价值 { background: #fff4e0; color: #b26a00; }
+  .b-沉睡 { background: #f0f0f0; color: #666; }
+  .b-流失 { background: #fdecea; color: #c62828; }
+  .chip { display: inline-block; background: #eef3fd; color: #1a73e8; border-radius: 14px;
+          padding: 2px 10px; font-size: 12px; margin: 2px 4px 2px 0; }
+  mark { background: #ffe082; padding: 0 2px; border-radius: 3px; }
+  .script-text { white-space: pre-wrap; font-size: 14px; line-height: 1.7;
+                background: #fafafa; border-radius: 8px; padding: 10px; margin: 8px 0; }
+  .logitem { border-bottom: 1px solid #eee; padding: 8px 0; font-size: 13px; }
+  .logitem:last-child { border-bottom: 0; }
+  #errbar { display: none; background: #fdecea; color: #b3261e; border-radius: 8px;
+            padding: 10px 12px; margin-bottom: 12px; font-size: 13px; }
+  .hint { font-size: 12px; color: #999; margin-top: 6px; }
+  .strat { background: #fff8e1; border-radius: 8px; padding: 10px 12px; margin: 8px 0; font-size: 14px; }
+  .strat .warn { color: #b26a00; margin-top: 6px; font-size: 13px; }
+  .stat { text-align: center; padding: 18px 0; }
+  .stat .n { font-size: 40px; font-weight: 700; color: #1a73e8; }
+  .stat .t { font-size: 13px; color: #666; margin-top: 4px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>AI 销售定向营销 App <span style="font-size:12px;opacity:.8">demo · 方案B</span></h1>
+  <p>给一线销售个人的 AI 表达决策助手：画像 → 话术 → 人工确认 → 触达登记</p>
+</header>
+<nav class="tabs" id="tabs">
+  <button data-t="t1" class="active">画像录入</button>
+  <button data-t="t2">分层洞察</button>
+  <button data-t="t3">话术生成</button>
+  <button data-t="t4">触达记录</button>
+  <button data-t="t5">设置</button>
+</nav>
+<main>
+  <div id="errbar"></div>
+
+  <!-- Tab1 画像录入 -->
+  <section id="t1" class="tabpage active">
+    <div class="card">
+      <h3>① 一句话描述客户</h3>
+      <textarea id="t1_input" placeholder="粘贴微信备注，如：纹眉-35岁-怕疼-二次到店意向高"></textarea>
+      <button class="btn" id="t1_go">整理成画像</button>
+      <div class="hint">AI 整理成五维画像卡，可改，保存进后端数据库。</div>
+    </div>
+    <div class="card" id="t1_card" style="display:none">
+      <h3>② 画像卡（可改）</h3>
+      <div class="dim"><div class="k">基本信息 · 他是谁</div>
+        <div class="row">
+          <input type="text" id="f_称呼" placeholder="称呼（必填）">
+          <input type="text" id="f_年龄" placeholder="年龄">
+        </div>
+        <div class="row" style="margin-top:6px">
+          <input type="text" id="f_性别" placeholder="性别">
+          <input type="text" id="f_职业" placeholder="职业">
+        </div>
+      </div>
+      <div class="dim"><div class="k">行为特征 · 他做过什么（每行一条，须含消费事实：买过什么/客单价/频次）</div>
+        <textarea id="f_行为特征" style="min-height:60px"></textarea></div>
+      <div class="dim"><div class="k">在意什么 · 他怕什么、图什么（一句话动机）</div>
+        <textarea id="f_在意什么" style="min-height:48px"></textarea></div>
+      <div class="dim"><div class="k">上次聊到哪 · 上次接触的一句话</div>
+        <textarea id="f_上次聊到哪" style="min-height:48px"></textarea></div>
+      <div class="dim"><div class="k">客户阶段</div>
+        <select id="f_客户阶段">
+          <option>新用户</option><option>活跃</option><option>高价值</option>
+          <option>沉睡</option><option>流失</option>
+        </select></div>
+      <button class="btn" id="t1_save">保存画像卡</button>
+    </div>
+  </section>
+
+  <!-- Tab2 分层洞察 -->
+  <section id="t2" class="tabpage">
+    <div class="card">
+      <h3>① 选择客户</h3>
+      <select id="t2_customer"></select>
+      <button class="btn" id="t2_go">开始分层</button>
+      <div class="hint">判定树：流失一票否决 ＞ 高价值 ＞ 沉睡(30天) ＞ 新用户 ＞ 活跃默认</div>
+    </div>
+    <div class="card" id="t2_card" style="display:none">
+      <h3>② 分层结果</h3>
+      <div><span class="badge" id="t2_badge"></span></div>
+      <div class="strat"><div id="t2_strategy"></div><div class="warn" id="t2_warn"></div></div>
+      <label class="f">人工可改分层</label>
+      <select id="t2_stage">
+        <option>新用户</option><option>活跃</option><option>高价值</option>
+        <option>沉睡</option><option>流失</option>
+      </select>
+      <button class="btn" id="t2_save">保存分层</button>
+    </div>
+  </section>
+
+  <!-- Tab3 话术生成 -->
+  <section id="t3" class="tabpage">
+    <div class="card">
+      <h3>① 选择客户与表达对象</h3>
+      <select id="t3_customer"></select>
+      <label class="f">表达对象</label>
+      <select id="t3_audience">
+        <option value="亲切型">亲切型（默认）</option>
+        <option value="技术型">技术型（重参数和原理）</option>
+        <option value="业务型">业务型（重效果和案例）</option>
+        <option value="老板型">老板型（重 ROI 和决策效率）</option>
+      </select>
+      <button class="btn" id="t3_go">生成三版话术</button>
+      <div class="hint">每版用到至少 1 个画像信息点；风险词只标红不拦截。</div>
+    </div>
+    <div id="t3_versions"></div>
+    <div class="card" id="t3_preview_card" style="display:none">
+      <h3>② 预览确认（可改）</h3>
+      <div class="hint" id="t3_chosen"></div>
+      <textarea id="t3_preview" style="min-height:120px"></textarea>
+      <div class="row">
+        <button class="btn ghost" id="t3_copy">复制话术</button>
+        <button class="btn" id="t3_tolog">去登记 →</button>
+      </div>
+      <div class="hint">只生成不真发：复制后去微信手动发送，再回 App 登记。</div>
+    </div>
+  </section>
+
+  <!-- Tab4 触达记录 -->
+  <section id="t4" class="tabpage">
+    <div class="card">
+      <h3>登记一次触达</h3>
+      <label class="f">客户</label><select id="t4_customer"></select>
+      <label class="f">话术版本</label><input type="text" id="t4_version" placeholder="如：亲切版">
+      <div class="row">
+        <div><label class="f">渠道</label>
+          <select id="t4_channel"><option>微信</option><option>电话</option><option>面谈</option><option>其他</option></select></div>
+        <div><label class="f">客户反应</label>
+          <select id="t4_react"><option>待跟进</option><option>已读</option><option>已回复</option><option>已成交</option><option>无响应</option></select></div>
+      </div>
+      <button class="btn" id="t4_save">登记（计一次有效触达）</button>
+    </div>
+    <div class="card">
+      <h3>回看（按时间倒序）</h3>
+      <div id="t4_list"><div class="hint">暂无记录</div></div>
+    </div>
+  </section>
+
+  <!-- Tab5 设置 -->
+  <section id="t5" class="tabpage">
+    <div class="card">
+      <h3>后端服务地址</h3>
+      <input type="text" id="s_api" placeholder="默认同源">
+      <button class="btn" id="s_save_api">保存地址</button>
+      <div class="hint">localStorage 只存这个地址，不存业务数据。留空 = 当前页面同源。</div>
+    </div>
+    <div class="card">
+      <h3>示例数据</h3>
+      <button class="btn" id="s_seed">一键载入示例客户（5 个）</button>
+      <div class="hint">会清空现有客户/话术/记录，写入 5 个医美风格示例客户。</div>
+    </div>
+    <div class="card">
+      <div class="stat"><div class="n" id="s_week">-</div>
+      <div class="t">本周有效触达次数（北极星代理指标）</div></div>
+      <button class="btn ghost" id="s_refresh">刷新统计</button>
+    </div>
+  </section>
+</main>
+
+<script>
+"use strict";
+/* ---------- 基础 ---------- */
+const $ = id => document.getElementById(id);
+const errbar = $("errbar");
+function apiBase(){
+  let b = (localStorage.getItem("sales_api_base") || "").trim().replace(/\/+$/,"");
+  return b || location.origin;
+}
+function showErr(msg){
+  errbar.textContent = "⚠ " + msg;
+  errbar.style.display = "block";
+  setTimeout(()=>{ errbar.style.display = "none"; }, 8000);
+}
+async function api(path, opts){
+  opts = opts || {};
+  opts.headers = Object.assign({"Content-Type":"application/json"}, opts.headers||{});
+  const r = await fetch(apiBase() + path, opts);
+  const data = await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(data.error || ("请求失败 " + r.status));
+  return data;
+}
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,
+  c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function highlight(text, words){
+  let h = esc(text);
+  (words||[]).forEach(w=>{ if(w) h = h.split(esc(w)).join("<mark>"+esc(w)+"</mark>"); });
+  return h;
+}
+function busy(btn, on, txt){
+  btn.disabled = on;
+  if(on){ btn.dataset.t = btn.textContent; btn.textContent = "AI 生成中…"; }
+  else if(btn.dataset.t){ btn.textContent = btn.dataset.t; }
+}
+/* tabs */
+document.querySelectorAll("#tabs button").forEach(b=>{
+  b.onclick = ()=>{
+    document.querySelectorAll("#tabs button").forEach(x=>x.classList.remove("active"));
+    document.querySelectorAll(".tabpage").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active"); $(b.dataset.t).classList.add("active");
+    window.scrollTo(0,0);
+  };
+});
+function gotoTab(t){ document.querySelector('#tabs button[data-t="'+t+'"]').click(); }
+
+/* ---------- 客户下拉 ---------- */
+let customers = [];
+async function loadCustomers(){
+  try{ customers = await api("/api/profiles"); }
+  catch(e){ showErr("加载客户失败：" + e.message); return; }
+  ["t2_customer","t3_customer","t4_customer"].forEach(id=>{
+    const s = $(id); s.innerHTML = "";
+    customers.forEach(c=>{
+      const o = document.createElement("option");
+      o.value = c.id; o.textContent = c["称呼"] + "（" + (c["客户阶段"]||"") + "）";
+      s.appendChild(o);
+    });
+  });
+}
+
+/* ---------- Tab1 画像录入 ---------- */
+let t1_profile = null;
+$("t1_go").onclick = async ()=>{
+  const text = $("t1_input").value.trim();
+  if(!text){ showErr("请先输入一句话描述"); return; }
+  const btn = $("t1_go"); busy(btn, true);
+  try{
+    const p = await api("/api/ai/organize", {method:"POST", body: JSON.stringify({text})});
+    t1_profile = p; fillProfileForm(p); $("t1_card").style.display = "block";
+  }catch(e){ showErr(e.message); }  // 不清空输入框，不丢数据
+  busy(btn, false);
+};
+function fillProfileForm(p){
+  const bi = p["基本信息"] || {};
+  $("f_称呼").value = bi["称呼"] || p["称呼"] || "";
+  $("f_年龄").value = bi["年龄"] || "";
+  $("f_性别").value = bi["性别"] || "";
+  $("f_职业").value = bi["职业"] || "";
+  const bt = p["行为特征"] || [];
+  $("f_行为特征").value = Array.isArray(bt) ? bt.join("\n") : bt;
+  $("f_在意什么").value = p["在意什么"] || "";
+  $("f_上次聊到哪").value = p["上次聊到哪"] || "";
+  $("f_客户阶段").value = p["客户阶段"] || "新用户";
+}
+$("t1_save").onclick = async ()=>{
+  const name = $("f_称呼").value.trim();
+  if(!name){ showErr("称呼必填"); return; }
+  const body = {
+    "称呼": name,
+    "基本信息": {"称呼":name,"年龄":$("f_年龄").value.trim(),"性别":$("f_性别").value.trim(),"职业":$("f_职业").value.trim()},
+    "行为特征": $("f_行为特征").value.split("\n").map(s=>s.trim()).filter(Boolean),
+    "在意什么": $("f_在意什么").value.trim(),
+    "上次聊到哪": $("f_上次聊到哪").value.trim(),
+    "客户阶段": $("f_客户阶段").value
+  };
+  const btn = $("t1_save"); busy(btn, true);
+  try{
+    await api("/api/profiles", {method:"POST", body: JSON.stringify(body)});
+    $("t1_input").value = ""; $("t1_card").style.display = "none";
+    await loadCustomers(); alert("画像卡已保存");
+  }catch(e){ showErr(e.message); }
+  busy(btn, false);
+};
+
+/* ---------- Tab2 分层洞察 ---------- */
+let t2_pid = null, t2_result = null;
+$("t2_go").onclick = async ()=>{
+  t2_pid = $("t2_customer").value;
+  if(!t2_pid){ showErr("还没有客户，先去 Tab1 录入或去设置载入示例客户"); return; }
+  const btn = $("t2_go"); busy(btn, true);
+  try{
+    t2_result = await api("/api/ai/segment", {method:"POST",
+      body: JSON.stringify({profile_id: Number(t2_pid)})});
+    const st = t2_result["客户阶段"] || "新用户";
+    const badge = $("t2_badge");
+    badge.textContent = st; badge.className = "badge b-" + st;
+    $("t2_strategy").textContent = "策略：" + (t2_result["策略一句话"]||"");
+    $("t2_warn").textContent = "⚠ " + (t2_result["打扰风险提示"]||"");
+    $("t2_stage").value = st;
+    $("t2_card").style.display = "block";
+  }catch(e){ showErr(e.message); }
+  busy(btn, false);
+};
+$("t2_save").onclick = async ()=>{
+  const btn = $("t2_save"); busy(btn, true);
+  try{
+    await api("/api/profiles/" + t2_pid, {method:"PUT",
+      body: JSON.stringify({"客户阶段": $("t2_stage").value})});
+    await loadCustomers(); alert("分层已保存");
+  }catch(e){ showErr(e.message); }
+  busy(btn, false);
+};
+
+/* ---------- Tab3 话术生成 ---------- */
+let t3_pid = null, t3_data = null, t3_script_id = 0;
+$("t3_go").onclick = async ()=>{
+  t3_pid = $("t3_customer").value;
+  if(!t3_pid){ showErr("还没有客户，先去 Tab1 录入或去设置载入示例客户"); return; }
+  const audience = $("t3_audience").value;
+  const btn = $("t3_go"); busy(btn, true);
+  try{
+    t3_data = await api("/api/ai/scripts", {method:"POST",
+      body: JSON.stringify({profile_id: Number(t3_pid), audience})});
+    renderVersions(t3_data.versions || [], audience);
+    $("t3_preview_card").style.display = "none";
+  }catch(e){ showErr(e.message); }  // 保留已选客户与表达对象
+  busy(btn, false);
+};
+function renderVersions(versions, audience){
+  const box = $("t3_versions"); box.innerHTML = "";
+  versions.forEach((v, i)=>{
+    const card = document.createElement("div"); card.className = "card";
+    const pts = (v["信息点"]||[]).map(p=>'<span class="chip">'+esc(p)+"</span>").join("");
+    card.innerHTML = "<h3>" + esc(v["版本"]||("版本"+(i+1))) + "</h3>"
+      + '<div class="script-text">' + highlight(v["文本"]||"", v["风险词"]) + "</div>"
+      + '<div class="hint">用到的画像信息点：</div><div>' + (pts||'<span class="hint">无</span>') + "</div>";
+    const b = document.createElement("button"); b.className = "btn"; b.textContent = "选用此版";
+    b.onclick = ()=> chooseVersion(v, audience);
+    card.appendChild(b); box.appendChild(card);
+  });
+}
+async function chooseVersion(v, audience){
+  // 存话术记录（选中版本名），再进预览
+  try{
+    const s = await api("/api/scripts", {method:"POST", body: JSON.stringify({
+      profile_id: Number(t3_pid), "表达对象": audience,
+      "三版": t3_data.versions, "选中版本": v["版本"] })});
+    t3_script_id = s.id;
+  }catch(e){ showErr("话术存档失败：" + e.message + "（可继续预览复制）"); }
+  $("t3_chosen").textContent = "已选用：" + v["版本"] + "（可改，改后以此为准登记）";
+  $("t3_preview").value = v["文本"] || "";
+  $("t3_preview_card").style.display = "block";
+  $("t3_preview_card").scrollIntoView({behavior:"smooth"});
+}
+async function copyText(t){
+  try{ await navigator.clipboard.writeText(t); return true; }
+  catch(e){
+    const ta = document.createElement("textarea"); ta.value = t;
+    document.body.appendChild(ta); ta.select();
+    try{ return document.execCommand("copy"); }catch(_){ return false; }
+    finally{ ta.remove(); }
+  }
+}
+$("t3_copy").onclick = async ()=>{
+  const ok = await copyText($("t3_preview").value);
+  alert(ok ? "已复制，去微信粘贴发送吧" : "复制失败，请手动长按复制");
+};
+$("t3_tolog").onclick = ()=>{
+  const c = customers.find(x=>String(x.id)===String(t3_pid));
+  if(c) $("t4_customer").value = c.id;
+  $("t4_version").value = $("t3_chosen").textContent.replace("已选用：","").split("（")[0];
+  gotoTab("t4");
+};
+
+/* ---------- Tab4 触达记录 ---------- */
+$("t4_save").onclick = async ()=>{
+  const pid = $("t4_customer").value;
+  if(!pid){ showErr("请先选择客户"); return; }
+  const btn = $("t4_save"); busy(btn, true);
+  try{
+    await api("/api/logs", {method:"POST", body: JSON.stringify({
+      profile_id: Number(pid), script_id: t3_script_id,
+      "渠道": $("t4_channel").value, "客户反应": $("t4_react").value })});
+    t3_script_id = 0;
+    await loadLogs(); refreshWeek(); alert("已登记，计一次有效触达");
+  }catch(e){ showErr(e.message); }
+  busy(btn, false);
+};
+async function loadLogs(){
+  try{
+    const logs = await api("/api/logs");
+    const box = $("t4_list");
+    if(!logs.length){ box.innerHTML = '<div class="hint">暂无记录</div>'; return; }
+    box.innerHTML = logs.map(l=>
+      '<div class="logitem"><b>'+esc(l["客户称呼"]||("客户"+l.profile_id))+"</b> · "
+      + esc(l["渠道"]) + " · " + esc(l["客户反应"])
+      + '<div class="hint">' + esc(l["发送时间"]||"") + "</div></div>").join("");
+  }catch(e){ showErr("加载记录失败：" + e.message); }
+}
+function fmtWeek(d){
+  const p = n => String(n).padStart(2,"0");
+  return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())+" "+p(d.getHours())+":"+p(d.getMinutes())+":"+p(d.getSeconds());
+}
+async function refreshWeek(){
+  try{
+    const logs = await api("/api/logs");
+    const d = new Date(); d.setHours(0,0,0,0);
+    d.setDate(d.getDate() - ((d.getDay()+6)%7));  // 本周一
+    const start = fmtWeek(d);
+    const n = logs.filter(l => (l["发送时间"]||"") >= start).length;
+    $("s_week").textContent = n;
+  }catch(e){ $("s_week").textContent = "-"; }
+}
+
+/* ---------- 设置 ---------- */
+$("s_api").value = localStorage.getItem("sales_api_base") || "";
+$("s_save_api").onclick = ()=>{
+  localStorage.setItem("sales_api_base", $("s_api").value.trim());
+  alert("已保存，之后请求走：" + apiBase());
+  loadCustomers(); loadLogs(); refreshWeek();
+};
+$("s_seed").onclick = async ()=>{
+  if(!confirm("将清空现有客户/话术/记录并写入 5 个示例客户，继续？")) return;
+  const btn = $("s_seed"); busy(btn, true);
+  try{
+    const r = await api("/api/seed", {method:"POST"});
+    await loadCustomers(); await loadLogs(); refreshWeek();
+    alert("已载入 " + r.seeded + " 个示例客户");
+  }catch(e){ showErr(e.message); }
+  busy(btn, false);
+};
+$("s_refresh").onclick = refreshWeek;
+
+/* ---------- 启动 ---------- */
+loadCustomers(); loadLogs(); refreshWeek();
+</script>
+</body>
+</html>
