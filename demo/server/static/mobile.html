@@ -227,12 +227,10 @@
                border-bottom:1px solid var(--line); padding:14px 16px 0; }
     #m_header h1{ margin:0; font-size:19px; }
     #m_header p{ margin:4px 0 0; font-size:12px; color:var(--sub); }
-    #m_tabs{ display:flex; margin-top:10px; }
-    #m_tabs button{ flex:1; border:0; background:none; padding:10px 2px 12px; font-size:11px;
-                    color:var(--hint); cursor:pointer; display:flex; flex-direction:column;
-                    align-items:center; gap:5px; border-bottom:2.5px solid transparent; }
-    #m_tabs button svg{ width:21px; height:21px; }
-    #m_tabs button.active{ color:var(--orange); border-bottom-color:var(--orange); font-weight:600; }
+    
+    
+    
+    
     .cols-2, .cols-2n{ grid-template-columns:1fr; }
     .ctrl-card .ctrl-row{ flex-direction:column; align-items:stretch; gap:14px; }
     .btn.big{ width:100%; }
@@ -264,7 +262,6 @@
 <header id="m_header">
   <h1 id="m_title">画像录入</h1>
   <p id="m_sub"></p>
-  <nav id="m_tabs"></nav>
 </header>
 
 <div id="page">
@@ -520,7 +517,7 @@ const TABMETA = {
   t5:{name:"设置", sub:"配置服务，了解产品的边界与衡量方式"}
 };
 let curTab = "t1";
-["m_tabs","m_bottombar"].forEach(navId=>{
+["m_bottombar"].forEach(navId=>{
   const nav = $(navId);
   Object.keys(TABMETA).forEach(t=>{
     const b = document.createElement("button");
@@ -533,7 +530,7 @@ let curTab = "t1";
 });
 function switchTab(t){
   curTab = t;
-  document.querySelectorAll("#m_tabs button,#m_bottombar button")
+  document.querySelectorAll("#m_bottombar button")
     .forEach(x=>x.classList.toggle("active", x.dataset.t===t));
   document.querySelectorAll(".tabpage").forEach(x=>x.classList.toggle("active", x.id===t));
   $("m_title").textContent = TABMETA[t].name;
