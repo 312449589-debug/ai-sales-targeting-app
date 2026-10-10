@@ -304,9 +304,14 @@ def create_log():
     if not data.get("profile_id"):
         return jsonify({"error": "缺少 profile_id"}), 400
     db = get_db()
+    # 兼容旧库：没有"话术版本"列时自动加上
+    try:
+        db.execute('ALTER TABLE touch_logs ADD COLUMN "话术版本" TEXT DEFAULT \'\'')
+    except Exception:
+        pass
     cur = db.execute(
-        'INSERT INTO touch_logs (profile_id,script_id,"渠道","客户反应","发送时间") VALUES (?,?,?,?,?)',
-        (data["profile_id"], data.get("script_id", 0),
+        'INSERT INTO touch_logs (profile_id,script_id,"话术版本","渠道","客户反应","发送时间") VALUES (?,?,?,?,?,?)',
+        (data["profile_id"], data.get("script_id", 0), data.get("话术版本", ""),
          data.get("渠道", ""), data.get("客户反应", ""), now_str()))
     db.commit()
     row = db.execute('SELECT * FROM touch_logs WHERE id=?', (cur.lastrowid,)).fetchone()
