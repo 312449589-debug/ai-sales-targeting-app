@@ -75,6 +75,8 @@
   .btn.primary:disabled{ background:#f3b98c; cursor:default; }
   .btn.outline{ background:#fff; color:var(--ink); border:1px solid var(--input-bd); }
   .btn.outline:hover{ border-color:var(--orange); color:var(--orange); }
+.btn.danger{ background:#fff; color:#d92d20; border:1px solid #f0b8b2; }
+.btn.danger:hover{ border-color:#d92d20; }
   .btn.block{ width:100%; margin-top:12px; }
   .btn .spin{ display:inline-block; width:15px; height:15px; border:2px solid rgba(255,255,255,.4);
               border-top-color:#fff; border-radius:50%; margin-right:8px;
@@ -264,6 +266,7 @@
           <div id="t1_portrait"></div>
           <div class="card-foot">
             <span class="hint">先核对画像，再保存。AI 不替您判断客户意愿。</span>
+            <button class="btn danger" id="t1_delete" hidden>删除客户</button>
             <button class="btn primary only-desktop" id="t1_save">保存画像</button>
           </div>
         </div>
@@ -586,6 +589,7 @@ async function loadPortraitFor(id){
 function renderPortrait(){
   const has = !!portrait;
   $("t1_card").hidden = !has; $("t1_empty").hidden = has;
+  $("t1_delete").hidden = !(portrait && portrait.id);
   if(!has){ return; }
   const nm = portrait["称呼"] || "未命名";
   $("t1_p_title").textContent = nm + "的画像";
@@ -683,6 +687,25 @@ async function savePortrait(){
   busy(btn, false);
 }
 $("t1_save").onclick = savePortrait;
+async function deletePortrait(){
+  if(!portrait || !portrait.id) return;
+  const name = portrait["称呼"] || "该客户";
+  if(!confirm("确定删除客户「" + name + "」吗？该客户的画像、生成的话术与触达记录将一并删除，且不可恢复。")) return;
+  const btn = $("t1_delete"); busy(btn, true, "删除中…");
+  try{
+    await api("/api/profiles/" + portrait.id, {method:"DELETE"});
+    const gone = portrait.id;
+    portrait = null; editingSec = null;
+    if(String(t1_pid)===String(gone)) t1_pid = null;
+    if(String(t3_pid)===String(gone)) t3_pid = null;
+    if(String(t2_pid)===String(gone)){ t2_pid = null; t2_result = null; const r = $("t2_result"); if(r) r.hidden = true; const s = $("t2_strat"); if(s) s.hidden = true; }
+    renderPortrait();
+    await loadCustomers(); await loadLogs(); refreshWeek();
+    toast("客户「" + name + "」已删除", "ok");
+  }catch(e){ toast(e.message, "err"); }
+  busy(btn, false);
+}
+$("t1_delete").onclick = deletePortrait;
 /* ================= Tab2 分层洞察 ================= */
 let t2_pid = null, t2_result = null;
 $("t2_search").oninput = e => renderT2List(e.target.value.trim());

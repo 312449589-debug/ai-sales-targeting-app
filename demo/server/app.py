@@ -239,10 +239,14 @@ def update_profile(pid):
 @app.route("/api/profiles/<int:pid>", methods=["DELETE"])
 def delete_profile(pid):
     db = get_db()
-    cur = db.execute('DELETE FROM profiles WHERE id=?', (pid,))
-    db.commit()
-    if cur.rowcount == 0:
+    row = db.execute('SELECT id FROM profiles WHERE id=?', (pid,)).fetchone()
+    if row is None:
         return jsonify({"error": "客户不存在"}), 404
+    # 级联删除：该客户的话术与触达记录一并清除，不留孤儿数据
+    db.execute('DELETE FROM touch_logs WHERE profile_id=?', (pid,))
+    db.execute('DELETE FROM scripts WHERE profile_id=?', (pid,))
+    db.execute('DELETE FROM profiles WHERE id=?', (pid,))
+    db.commit()
     return jsonify({"ok": True})
 
 
